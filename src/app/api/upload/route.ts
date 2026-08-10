@@ -1,21 +1,11 @@
 import { NextResponse } from "next/server";
-import { isDriveConfigured, uploadToDrive } from "@/lib/google/drive";
+import { put } from "@vercel/blob";
 
 export const dynamic = "force-dynamic";
 
 const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 
 export async function POST(request: Request) {
-  if (!isDriveConfigured()) {
-    return NextResponse.json(
-      {
-        error:
-          "Upload lampiran belum dikonfigurasi (GOOGLE_DRIVE_FOLDER_ID kosong). Lihat SETUP.md.",
-      },
-      { status: 501 }
-    );
-  }
-
   try {
     const formData = await request.formData();
     const file = formData.get("file");
@@ -30,15 +20,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const fileName = `${Date.now()}-${file.name}`;
-    const url = await uploadToDrive(
-      buffer,
-      fileName,
-      file.type || "application/octet-stream"
-    );
+    const pathname = `attachments/${Date.now()}-${file.name}`;
+    const blob = await put(pathname, file, {
+      access: "public",
+      addRandomSuffix: true,
+    });
 
-    return NextResponse.json({ url }, { status: 201 });
+    return NextResponse.json({ url: blob.url }, { status: 201 });
   } catch (err) {
     console.error(err);
     return NextResponse.json(

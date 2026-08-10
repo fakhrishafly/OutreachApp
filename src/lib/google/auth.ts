@@ -13,7 +13,7 @@ function requireEnv(name: string): string {
 }
 
 /**
- * Shared service-account auth client for both Sheets and Drive.
+ * Service-account auth client for Sheets.
  * Cached across invocations within the same server instance.
  */
 export function getGoogleAuth() {
@@ -26,10 +26,7 @@ export function getGoogleAuth() {
   cachedAuth = new google.auth.JWT({
     email,
     key: privateKey,
-    scopes: [
-      "https://www.googleapis.com/auth/spreadsheets",
-      "https://www.googleapis.com/auth/drive.file",
-    ],
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
 
   return cachedAuth;
