@@ -1,6 +1,6 @@
 # Setup — BPS Outreach Tracker
 
-Panduan menyiapkan Google Sheets sebagai database, service account, dan (opsional) upload lampiran ke Google Drive.
+Panduan menyiapkan Google Sheets sebagai database, service account, dan Vercel Blob Storage untuk upload lampiran.
 
 ## 1. Buat Google Spreadsheet
 
@@ -12,8 +12,8 @@ Panduan menyiapkan Google Sheets sebagai database, service account, dan (opsiona
 ## 2. Buat Service Account (Google Cloud)
 
 1. Buka [Google Cloud Console](https://console.cloud.google.com/) → buat project baru (atau pakai yang sudah ada).
-2. Aktifkan **Google Sheets API** (dan **Google Drive API** jika ingin memakai fitur upload lampiran):
-   `APIs & Services` → `Enable APIs and Services` → cari & aktifkan keduanya.
+2. Aktifkan **Google Sheets API**:
+   `APIs & Services` → `Enable APIs and Services` → cari & aktifkan.
 3. Buat service account: `APIs & Services` → `Credentials` → `Create Credentials` → `Service Account`.
 4. Setelah service account dibuat, buka tab `Keys` → `Add Key` → `Create new key` → pilih **JSON** → unduh file kredensialnya.
 5. Dari file JSON tersebut, kamu butuh dua nilai:
@@ -24,17 +24,20 @@ Panduan menyiapkan Google Sheets sebagai database, service account, dan (opsiona
 
 Di Google Spreadsheet yang dibuat pada langkah 1, klik **Share**, lalu tambahkan email service account (`client_email` dari file JSON) sebagai **Editor**.
 
-## 4. (Opsional) Setup Google Drive untuk lampiran
+## 4. Setup Vercel Blob Storage untuk lampiran
 
-Jika ingin memakai fitur upload foto dokumentasi/kartu nama pada form kunjungan:
+Upload foto dokumentasi/kartu nama pada form kunjungan memakai [Vercel Blob](https://vercel.com/docs/storage/vercel-blob).
 
-1. Buat folder baru di Google Drive, khusus untuk menyimpan lampiran.
-2. Share folder tersebut ke email service account sebagai **Editor**.
-3. Salin ID folder dari URL-nya:
-   `https://drive.google.com/drive/folders/`**`<GOOGLE_DRIVE_FOLDER_ID>`**
-4. Isi `GOOGLE_DRIVE_FOLDER_ID` di environment variable.
+1. Di dashboard project Vercel → tab **Storage** → buat **Blob Store** baru, lalu connect ke project ini.
+2. Selesai — tidak perlu menyalin token apa pun. Saat aplikasi berjalan di Vercel, akses ke Blob store didapat otomatis lewat OIDC.
+3. Untuk development lokal, link project ke Vercel lalu tarik environment variable-nya:
+   ```
+   npx vercel link
+   npx vercel env pull .env.local
+   ```
+   Ini akan mengisi kredensial Blob yang dibutuhkan `@vercel/blob` secara otomatis di `.env.local`.
 
-Jika langkah ini dilewati, form tetap bisa dipakai — bagian upload lampiran hanya akan menampilkan pesan bahwa fitur belum dikonfigurasi.
+Jika langkah ini belum dilakukan, form tetap bisa dipakai — bagian upload lampiran akan gagal dengan pesan error saat dicoba.
 
 ## 5. Isi Environment Variables
 
@@ -44,8 +47,9 @@ Salin `.env.example` menjadi `.env.local` lalu isi:
 GOOGLE_SERVICE_ACCOUNT_EMAIL=...
 GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 GOOGLE_SHEET_ID=...
-GOOGLE_DRIVE_FOLDER_ID=...
 ```
+
+(Kredensial Vercel Blob tidak perlu diisi manual — lihat langkah 4.)
 
 Jalankan aplikasi secara lokal:
 
@@ -59,8 +63,9 @@ Buka [http://localhost:3000](http://localhost:3000) — otomatis diarahkan ke ha
 ## 6. Deploy ke Vercel
 
 1. Push repo ini ke GitHub, lalu import ke [vercel.com/new](https://vercel.com/new).
-2. Di pengaturan project Vercel → `Environment Variables`, isi 4 variable yang sama seperti di atas.
-3. Deploy. Aplikasi bisa langsung diakses dan di-install sebagai PWA dari HP (menu browser → "Add to Home Screen" / "Install App").
+2. Di pengaturan project Vercel → `Environment Variables`, isi 3 variable Google (`GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `GOOGLE_SHEET_ID`).
+3. Pastikan Blob Store sudah di-connect ke project ini (lihat langkah 4) — tidak perlu environment variable tambahan untuk itu.
+4. Deploy. Aplikasi bisa langsung diakses dan di-install sebagai PWA dari HP (menu browser → "Add to Home Screen" / "Install App").
 
 ## Struktur data di Google Sheets
 
