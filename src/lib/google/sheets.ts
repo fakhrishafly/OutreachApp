@@ -145,10 +145,16 @@ export async function appendRow<T extends object>(
   // empty row after the last row with data (auto-expanding the sheet if
   // needed) rather than shifting existing rows — INSERT_ROWS would insert
   // a literal new grid row at the detected position instead of appending.
+  //
+  // valueInputOption RAW (not USER_ENTERED) so Sheets stores every value as
+  // literal text — USER_ENTERED parses values the way a human typing into
+  // the UI would, which silently reinterprets strings like periode "2026-06"
+  // as an actual date (reformatting it to something like "6/1/2026") and can
+  // strip the leading zero off phone numbers.
   await sheets.spreadsheets.values.append({
     spreadsheetId,
     range: `${sheetName}!A:${lastCol}`,
-    valueInputOption: "USER_ENTERED",
+    valueInputOption: "RAW",
     requestBody: { values: [values] },
   });
 }
@@ -190,7 +196,7 @@ export async function updateRowByKey<T extends object>(
   await sheets.spreadsheets.values.update({
     spreadsheetId,
     range: `${sheetName}!A${sheetRowNumber}:${lastCol}${sheetRowNumber}`,
-    valueInputOption: "USER_ENTERED",
+    valueInputOption: "RAW", // see the note in appendRow — avoids Sheets reinterpreting our text as dates/numbers
     requestBody: { values: [merged] },
   });
 
