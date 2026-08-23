@@ -45,6 +45,11 @@ export const ACTIVE_PIPELINE_STAGES: Stage[] = [
   "Consideration",
 ];
 
+/** Position of a stage along the pipeline sequence (higher = further along). */
+export function stageOrder(stage: Stage): number {
+  return STAGES.indexOf(stage);
+}
+
 export const TUJUAN_SUGGESTIONS = [
   "Meeting dengan Kaprodi",
   "Penjajakan Penelitian",

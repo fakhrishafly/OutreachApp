@@ -5,7 +5,7 @@ Panduan menyiapkan Google Sheets sebagai database, service account, dan Vercel B
 ## 1. Buat Google Spreadsheet
 
 1. Buat 1 spreadsheet baru di [sheets.google.com](https://sheets.google.com), beri nama bebas (mis. "BPS Outreach Tracker - Database").
-2. Aplikasi akan **otomatis membuat tab `Stakeholder` dan `Interaction` beserta header kolomnya** saat pertama kali dipakai — kamu tidak perlu membuat tab/header manual. Tab `Target` akan dipakai mulai Fase 2.
+2. Aplikasi akan **otomatis membuat tab `Stakeholder`, `Interaction`, dan `Target` beserta header kolomnya** saat pertama kali dipakai — kamu tidak perlu membuat tab/header manual.
 3. Salin ID spreadsheet dari URL-nya:
    `https://docs.google.com/spreadsheets/d/`**`<GOOGLE_SHEET_ID>`**`/edit`
 
@@ -84,12 +84,14 @@ Buka [http://localhost:3000](http://localhost:3000) — otomatis diarahkan ke ha
 - `periode`: format `YYYY-MM`, merepresentasikan periode custom 21–20 yang **dimulai** pada bulan tersebut (mis. `2026-07` = 21 Jul – 20 Agu 2026)
 - `stage_after`: `Passive`, `Lead`, `Contacted`, `Meeting`, `Proposal Sent`, `Consideration`, `Conversion`
 
-### Tab `Target` (dipakai mulai Fase 2)
+### Tab `Target`
 | periode | target_visit |
 |---------|--------------|
 
+`target_visit` diisi/diubah lewat form "Atur Target Kunjungan" di halaman Dashboard — tidak perlu diedit manual di spreadsheet, meski tetap bisa jika mau.
+
 ## Roadmap
 
-- **Fase 1 (aktif sekarang):** Entity (form capture 4 langkah) + koneksi Google Sheets + riwayat interaksi sederhana.
-- **Fase 2:** Pipeline (Kanban board) + Dashboard (funnel, bar chart, line chart target) + filter periode.
+- **Fase 1:** Entity (form capture 4 langkah) + koneksi Google Sheets + riwayat interaksi sederhana.
+- **Fase 2 (aktif sekarang):** Pipeline (Kanban board, drag-drop stage update) + Dashboard (funnel, bar chart, line chart target, list follow-up & top leads) + filter periode (tunggal/rentang) di Entity/Pipeline/Dashboard.
 - **Fase 3:** Laporan — generate PDF/PPT otomatis.

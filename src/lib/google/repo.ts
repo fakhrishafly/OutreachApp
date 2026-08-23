@@ -5,8 +5,11 @@ import {
   readSheet,
   SHEET_NAMES,
   STAKEHOLDER_HEADERS,
+  TARGET_HEADERS,
+  updateRowByKey,
+  upsertRowByKey,
 } from "./sheets";
-import type { Interaction, Stakeholder, StakeholderType } from "../types";
+import type { Interaction, Stakeholder, StakeholderType, Stage, Target } from "../types";
 
 export async function listStakeholders(): Promise<Stakeholder[]> {
   const rows = await readSheet(SHEET_NAMES.stakeholder, STAKEHOLDER_HEADERS);
@@ -79,4 +82,30 @@ export async function createInteraction(
   };
   await appendRow(SHEET_NAMES.interaction, INTERACTION_HEADERS, interaction);
   return interaction;
+}
+
+/** Quick-update for Pipeline drag-drop: patches only `stage_after` on an existing interaction. */
+export async function updateInteractionStage(
+  id: string,
+  stage_after: Stage
+): Promise<boolean> {
+  return updateRowByKey(SHEET_NAMES.interaction, INTERACTION_HEADERS, "id", id, {
+    stage_after,
+  });
+}
+
+export async function listTargets(): Promise<Target[]> {
+  const rows = await readSheet(SHEET_NAMES.target, TARGET_HEADERS);
+  return rows
+    .filter((r) => r.periode)
+    .map((r) => ({
+      periode: r.periode,
+      target_visit: Number(r.target_visit) || 0,
+    }));
+}
+
+export async function upsertTarget(periode: string, target_visit: number): Promise<Target> {
+  const target: Target = { periode, target_visit };
+  await upsertRowByKey(SHEET_NAMES.target, TARGET_HEADERS, "periode", periode, target);
+  return target;
 }

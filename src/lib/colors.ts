@@ -65,3 +65,28 @@ export const STAGE_STYLE: Record<
     dot: "bg-emerald-500",
   },
 };
+
+/** Hex equivalents of the stage/score accent colors above, for chart fills (SVG can't use Tailwind classes). */
+export const STAGE_HEX: Record<Stage, string> = {
+  Passive: "#9ca3af",
+  Lead: "#0ea5e9",
+  Contacted: "#6366f1",
+  Meeting: "#8b5cf6",
+  "Proposal Sent": "#f97316",
+  Consideration: "#14b8a6",
+  Conversion: "#10b981",
+};
+
+export const SCORE_HEX: Record<PotentialScore, string> = {
+  Hot: "#ef4444",
+  Warm: "#f59e0b",
+  Cold: "#94a3b8",
+};
+
+/** Neutral chart colors — used for series that aren't score/stage-coded. */
+export const CHART_NEUTRAL = {
+  primary: "#111827", // gray-900
+  secondary: "#d1d5db", // gray-300
+  grid: "#e5e7eb", // gray-200
+  muted: "#9ca3af", // gray-400
+};
