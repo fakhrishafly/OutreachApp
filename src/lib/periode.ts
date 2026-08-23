@@ -38,6 +38,7 @@ export interface Periode {
   value: string; // "YYYY-MM"
   label: string; // "21 Jul - 20 Agu 2026"
   monthLabel: string; // "Juli 2026" (name of the start month, used in dropdowns)
+  shortLabel: string; // "Jul 26" (compact form for chart axis ticks)
   start: Date;
   end: Date;
 }
@@ -68,6 +69,7 @@ export function buildPeriode(year: number, month: number): Periode {
     value: `${startYear}-${pad2(month)}`,
     label,
     monthLabel: `${MONTHS_LONG[month - 1]} ${startYear}`,
+    shortLabel: `${startShort} ${String(startYear).slice(2)}`,
     start,
     end,
   };
@@ -133,4 +135,37 @@ export function periodeRange(from: string, to: string): string[] {
     result.push(`${year}-${pad2(month)}`);
   }
   return result;
+}
+
+/**
+ * Compact list of periods for filter-bar dropdowns — a window around today,
+ * most recent first (as opposed to `generatePeriodeList`, which lists a
+ * single calendar year for the wizard's picker grid).
+ */
+export function generatePeriodeOptions(monthsBack = 18, monthsForward = 2): Periode[] {
+  const current = getCurrentPeriode().value;
+  const values = periodeRange(
+    addMonthsToPeriode(current, -monthsBack),
+    addMonthsToPeriode(current, monthsForward)
+  );
+  return values.map(periodeFromValue).reverse();
+}
+
+/**
+ * Full contiguous periode timeline spanning the earliest to the latest of
+ * the given values, extended to include the current periode. Used by charts
+ * that must show every period, not just the ones with data.
+ */
+export function buildPeriodeTimeline(periodeValues: string[]): string[] {
+  const current = getCurrentPeriode().value;
+  const all = [...periodeValues, current].filter(Boolean);
+  if (all.length === 0) return [current];
+
+  let min = all[0];
+  let max = all[0];
+  for (const v of all) {
+    if (comparePeriode(v, min) < 0) min = v;
+    if (comparePeriode(v, max) > 0) max = v;
+  }
+  return periodeRange(min, max);
 }

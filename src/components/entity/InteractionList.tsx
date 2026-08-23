@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CalendarClock, RefreshCw, Search } from "lucide-react";
+import { PeriodeFilterBar } from "@/components/filters/PeriodeFilterBar";
 import { POTENTIAL_SCORE_STYLE, STAGE_STYLE } from "@/lib/colors";
+import { defaultPeriodeFilter, periodeMatches, type PeriodeFilterValue } from "@/lib/filters";
 import { periodeFromValue } from "@/lib/periode";
 import type { Interaction } from "@/lib/types";
 
@@ -11,6 +13,9 @@ export function InteractionList({ refreshKey }: { refreshKey?: number | string }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  const [periodeFilter, setPeriodeFilter] = useState<PeriodeFilterValue>(() =>
+    defaultPeriodeFilter()
+  );
 
   useEffect(() => {
     load();
@@ -32,17 +37,20 @@ export function InteractionList({ refreshKey }: { refreshKey?: number | string }
   }
 
   const filtered = useMemo(() => {
+    const byPeriode = interactions.filter((i) => periodeMatches(periodeFilter, i.periode));
     const q = query.trim().toLowerCase();
-    if (!q) return interactions;
-    return interactions.filter((i) =>
+    if (!q) return byPeriode;
+    return byPeriode.filter((i) =>
       [i.stakeholder_name, i.tujuan, i.pic_name].some((v) =>
         (v ?? "").toLowerCase().includes(q)
       )
     );
-  }, [interactions, query]);
+  }, [interactions, query, periodeFilter]);
 
   return (
     <div className="space-y-3">
+      <PeriodeFilterBar value={periodeFilter} onChange={setPeriodeFilter} />
+
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />

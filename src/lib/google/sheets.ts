@@ -153,6 +153,64 @@ export async function appendRow<T extends object>(
   });
 }
 
+/** Finds the row where `keyColumn` equals `keyValue` and merges `patch` into it in place. */
+export async function updateRowByKey<T extends object>(
+  sheetName: string,
+  headers: string[],
+  keyColumn: string,
+  keyValue: string,
+  patch: T
+): Promise<boolean> {
+  await ensureSheet(sheetName, headers);
+
+  const sheets = getSheetsClient();
+  const spreadsheetId = getSpreadsheetId();
+  const lastCol = columnLetter(headers.length);
+  const keyIndex = headers.indexOf(keyColumn);
+
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${sheetName}!A2:${lastCol}`,
+  });
+  const rows = res.data.values ?? [];
+  const rowIndex = rows.findIndex((row) => row[keyIndex] === keyValue);
+  if (rowIndex === -1) return false;
+
+  const record = patch as Record<string, string | number | undefined>;
+  const current = rows[rowIndex];
+  const merged = headers.map((h, i) => {
+    if (Object.prototype.hasOwnProperty.call(record, h)) {
+      const v = record[h];
+      return v === undefined || v === null ? "" : v;
+    }
+    return current[i] ?? "";
+  });
+
+  const sheetRowNumber = rowIndex + 2; // +1 for the header row, +1 for 1-indexing
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `${sheetName}!A${sheetRowNumber}:${lastCol}${sheetRowNumber}`,
+    valueInputOption: "USER_ENTERED",
+    requestBody: { values: [merged] },
+  });
+
+  return true;
+}
+
+/** Updates the row matching `keyColumn`/`keyValue` if it exists, otherwise appends a new one. */
+export async function upsertRowByKey<T extends object>(
+  sheetName: string,
+  headers: string[],
+  keyColumn: string,
+  keyValue: string,
+  row: T
+): Promise<void> {
+  const updated = await updateRowByKey(sheetName, headers, keyColumn, keyValue, row);
+  if (!updated) {
+    await appendRow(sheetName, headers, row);
+  }
+}
+
 export function genId(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}${Math.random()
     .toString(36)
