@@ -129,6 +129,7 @@ export async function appendRow<T extends object>(
 
   const sheets = getSheetsClient();
   const spreadsheetId = getSpreadsheetId();
+  const lastCol = columnLetter(headers.length);
 
   const record = rowObject as Record<string, string | number | undefined>;
   const values = headers.map((h) => {
@@ -136,11 +137,18 @@ export async function appendRow<T extends object>(
     return v === undefined || v === null ? "" : v;
   });
 
+  // The range must span the full (unbounded) column range, not just row 1 —
+  // otherwise the API only "sees" the header row as the table and inserts
+  // every new row right after it (row 2), pushing all prior rows down on
+  // every submit instead of landing at the true bottom of the sheet.
+  // insertDataOption defaults to OVERWRITE, which writes into the first
+  // empty row after the last row with data (auto-expanding the sheet if
+  // needed) rather than shifting existing rows — INSERT_ROWS would insert
+  // a literal new grid row at the detected position instead of appending.
   await sheets.spreadsheets.values.append({
     spreadsheetId,
-    range: `${sheetName}!A1`,
+    range: `${sheetName}!A:${lastCol}`,
     valueInputOption: "USER_ENTERED",
-    insertDataOption: "INSERT_ROWS",
     requestBody: { values: [values] },
   });
 }
