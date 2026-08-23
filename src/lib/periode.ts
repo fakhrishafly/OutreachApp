@@ -45,6 +45,11 @@ export interface Periode {
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
+/** Strict "YYYY-MM" check — guards against garbled values (e.g. a sheet cell Google Sheets silently reformatted as a date). */
+export function isValidPeriodeValue(value: string): boolean {
+  return /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+}
+
 function parsePeriodeValue(value: string): { year: number; month: number } {
   const [y, m] = value.split("-").map(Number);
   return { year: y, month: m };
@@ -155,10 +160,16 @@ export function generatePeriodeOptions(monthsBack = 18, monthsForward = 2): Peri
  * Full contiguous periode timeline spanning the earliest to the latest of
  * the given values, extended to include the current periode. Used by charts
  * that must show every period, not just the ones with data.
+ *
+ * Filters out anything that isn't a clean "YYYY-MM" value first — a single
+ * garbled entry (e.g. a legacy sheet row written before RAW value input was
+ * enforced) would otherwise turn every `comparePeriode` check against it
+ * into a NaN comparison, which is neither `< 0` nor `> 0`. That freezes
+ * min/max on the garbled value and collapses the whole timeline to empty.
  */
 export function buildPeriodeTimeline(periodeValues: string[]): string[] {
   const current = getCurrentPeriode().value;
-  const all = [...periodeValues, current].filter(Boolean);
+  const all = [...periodeValues, current].filter(isValidPeriodeValue);
   if (all.length === 0) return [current];
 
   let min = all[0];
