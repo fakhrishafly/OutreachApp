@@ -93,5 +93,5 @@ Buka [http://localhost:3000](http://localhost:3000) — otomatis diarahkan ke ha
 ## Roadmap
 
 - **Fase 1:** Entity (form capture 4 langkah) + koneksi Google Sheets + riwayat interaksi sederhana.
-- **Fase 2 (aktif sekarang):** Pipeline (Kanban board, drag-drop stage update) + Dashboard (funnel, bar chart, line chart target, list follow-up & top leads) + filter periode (tunggal/rentang) di Entity/Pipeline/Dashboard.
-- **Fase 3:** Laporan — generate PDF/PPT otomatis.
+- **Fase 2:** Pipeline (Kanban board, drag-drop stage update) + Dashboard (funnel, bar chart, line chart target, list follow-up & top leads) + filter periode (tunggal/rentang) di Entity/Pipeline/Dashboard.
+- **Fase 3 (aktif sekarang):** Laporan — preview + generate file PPT otomatis (funnel, bar chart, aktual vs target, tabel kunjungan, list Conversion & Pipeline Aktif), langsung di-generate di browser tanpa perlu server tambahan.

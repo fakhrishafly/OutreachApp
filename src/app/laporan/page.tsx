@@ -1,11 +1,5 @@
-import { PlaceholderPage } from "@/components/ui/PlaceholderPage";
+import LaporanPageClient from "./LaporanPageClient";
 
 export default function LaporanPage() {
-  return (
-    <PlaceholderPage
-      title="Laporan"
-      description="Generate laporan PDF/PPT otomatis berdasarkan filter periode."
-      phase="Fase 3"
-    />
-  );
+  return <LaporanPageClient />;
 }

@@ -1,6 +1,13 @@
 import { buildPeriodeTimeline, periodeFromValue } from "./periode";
 import { computeLatestPerStakeholder, type PipelineCard } from "./pipeline";
-import { STAGES, STAKEHOLDER_TYPES, stageOrder, type Interaction, type Target } from "./types";
+import {
+  ACTIVE_PIPELINE_STAGES,
+  STAGES,
+  STAKEHOLDER_TYPES,
+  stageOrder,
+  type Interaction,
+  type Target,
+} from "./types";
 
 export interface FunnelPoint {
   stage: (typeof STAGES)[number];
@@ -38,20 +45,11 @@ export interface VisitVsTargetPoint {
   target: number;
 }
 
-/**
- * Actual visits vs target, across every period from the earliest data point
- * to today — not filtered by the page's periode filter, per spec ("tampilkan
- * SEMUA periode yang tersedia").
- */
-export function computeVisitVsTarget(
+function buildVisitVsTargetPoints(
   interactions: Interaction[],
-  targets: Target[]
+  targets: Target[],
+  timeline: string[]
 ): VisitVsTargetPoint[] {
-  const timeline = buildPeriodeTimeline([
-    ...interactions.map((i) => i.periode),
-    ...targets.map((t) => t.periode),
-  ]);
-
   const actualCounts = new Map<string, number>();
   for (const i of interactions) {
     if (!i.periode) continue;
@@ -65,6 +63,35 @@ export function computeVisitVsTarget(
     actual: actualCounts.get(periode) ?? 0,
     target: targetMap.get(periode) ?? 0,
   }));
+}
+
+/**
+ * Actual visits vs target, across every period from the earliest data point
+ * to today — not filtered by the page's periode filter, per spec ("tampilkan
+ * SEMUA periode yang tersedia"). Used by the Dashboard.
+ */
+export function computeVisitVsTarget(
+  interactions: Interaction[],
+  targets: Target[]
+): VisitVsTargetPoint[] {
+  const timeline = buildPeriodeTimeline([
+    ...interactions.map((i) => i.periode),
+    ...targets.map((t) => t.periode),
+  ]);
+  return buildVisitVsTargetPoints(interactions, targets, timeline);
+}
+
+/**
+ * Actual visits vs target, scoped to an explicit list of periods — used by
+ * Laporan, which reports on the periode(s) the user picked rather than all
+ * of history.
+ */
+export function computeVisitVsTargetForRange(
+  interactions: Interaction[],
+  targets: Target[],
+  periodeValues: string[]
+): VisitVsTargetPoint[] {
+  return buildVisitVsTargetPoints(interactions, targets, periodeValues);
 }
 
 /** Cards with an upcoming follow-up date, nearest first. */
@@ -84,6 +111,18 @@ export function computeTopLeads(cards: PipelineCard[], limit = 10): PipelineCard
       if (scoreDiff !== 0) return scoreDiff;
       return stageOrder(b.latest.stage_after) - stageOrder(a.latest.stage_after);
     })
+    .slice(0, limit);
+}
+
+/** Interactions that closed as Conversion, most recent first. */
+export function computeConversionList(interactions: Interaction[], limit = 10): Interaction[] {
+  return interactions.filter((i) => i.stage_after === "Conversion").slice(0, limit);
+}
+
+/** Stakeholders currently sitting in an active pipeline stage (Lead–Consideration). */
+export function computeActivePipelineList(cards: PipelineCard[], limit = 10): PipelineCard[] {
+  return cards
+    .filter((c) => (ACTIVE_PIPELINE_STAGES as string[]).includes(c.latest.stage_after))
     .slice(0, limit);
 }
 
